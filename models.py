@@ -1,0 +1,93 @@
+from database import Base
+from sqlalchemy import Column, Integer, Boolean, Text, String, ForeignKey, Float
+from sqlalchemy.orm import relationship
+from sqlalchemy_utils.types import ChoiceType
+
+
+class User(Base):
+    __tablename__ = 'user'
+
+    id = Column(Integer, primary_key=True)
+    first_name = Column(String(155), nullable=False)
+    last_name = Column(String(155), nullable=False)
+    username = Column(String(155), unique=True)
+    email = Column(String(155), nullable=False)
+    password = Column(Text, nullable=False)
+    is_staff = Column(Boolean, default=False)
+    is_active = Column(Boolean, default=True)
+
+
+    def __repr__(self):
+        # return '<User %r>' % self.username
+        return f'User {self.username}'
+
+
+class Cargo(Base):
+
+
+# yetkazib berish transportini tanlash
+    OrderChoice = (
+        ('TRUCK', 'Truck')
+        ('RAILWAY', 'Railway'),
+        ('PLANE', 'Plane'),
+        ('SHIP', 'Ship')
+    )
+    __tablename__ = 'cargo'
+
+
+    id = Column(Integer, primary_key=True)
+    title = Column(String(155), nullable=False)
+    quantity = Column(Integer, nullable=False)
+    transport = Column(ChoiceType(choices=OrderChoice), default="TRUCK")
+    insurance = Column(Boolean, default=False)
+
+    user = relationship('User', back_populates='orders')
+
+    def __repr__(self):
+        return f"Product (title={self.title}, quantity={self.quantity})"
+
+class Product(Base):
+    __tablename__ = 'product'
+
+    id = Column(Integer, primary_key=True)
+    title = Column(String(200), nullable=False)
+    rating = Column(Float, nullable=False)
+    price = Column(Float, nullable=False)
+    color = Column(String(50), nullable=False)
+
+    orders = relationship('Order', back_populates='product')
+
+    def __repr__(self):
+        return f"Product(title={self.title}, price={self.price})"
+
+
+class Order(Base):
+
+# yetib kelayotgandagi jarayonlar
+    OrderChoice = (
+        ('ACCEPTED', 'Accepted')
+        ('PENDING', 'Pending'),
+        ('IN_TRANSIT', 'In Transit'),
+        ('COMPLETED', 'Completed')
+    )
+
+    __tablename__ = 'orders'
+
+
+
+    id = Column(Integer, primary_key=True)
+    quantity = Column(Integer, nullable=False)
+    order_status = Column(ChoiceType(choices=OrderChoice), default="ACCEPTED")
+    price = Column(Float, nullable=False)
+    address = Column(String(300), nullable=True)
+    product_id = Column(Integer, ForeignKey('product.id'))
+
+    user = relationship('User', back_populates='orders')
+    product = relationship('Product', back_populates='orders')
+
+    def __repr__(self):
+        return f"Order(id={self.id}, status={self.order_status})"
+
+
+
+
